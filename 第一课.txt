@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秋江老师课堂消消乐游戏</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #FFF8F0; /* 奶白色背景 */
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            color: #E74C3C;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 15px;
+            width: 90%;
+            max-width: 600px;
+            margin: 0 auto;
+            aspect-ratio: 1/1;
+        }
+        
+        .bubble {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, opacity 0.3s;
+            box-shadow: 
+                0 5px 15px rgba(0, 0, 0, 0.2),
+                inset 0 -5px 15px rgba(0, 0, 0, 0.1),
+                inset 0 5px 15px rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bubble::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+        }
+        
+        .bubble:hover {
+            transform: scale(1.05);
+        }
+        
+        .bubble.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0);
+        }
+        
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 10px;
+            font-size: 2em;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .success-message.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        
+        .restart-btn {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .restart-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>秋江老师课堂消消乐游戏</h1>
+    
+    <div class="game-container" id="gameBoard"></div>
+    
+    <button class="restart-btn" id="restartBtn">重新开始</button>
+    
+    <div class="success-message" id="successMessage">
+        恭喜你挑战成功！
+    </div>
+
+    <audio id="successSound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pairs = [
+                { word: '一', pinyin: 'yī' },
+                { word: '二', pinyin: 'èr' },
+                { word: '五', pinyin: 'wǔ' },
+                { word: '八', pinyin: 'bā' },
+                { word: '零', pinyin: 'línɡ' },
+                { word: '你', pinyin: 'nǐ' },
+                { word: '好', pinyin: 'hǎo' },
+                { word: '您', pinyin: 'nín' }
+            ];
+            
+            // 创建游戏卡片数组（每对出现两次）
+            let cards = [];
+            pairs.forEach(pair => {
+                cards.push({ type: 'word', content: pair.word, match: pair.pinyin });
+                cards.push({ type: 'pinyin', content: pair.pinyin, match: pair.word });
+            });
+            
+            // 音频元素
+            const successSound = document.getElementById('successSound');
+            
+            // 洗牌函数
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+            
+            // 初始化游戏
+            function initGame() {
+                const gameBoard = document.getElementById('gameBoard');
+                gameBoard.innerHTML = '';
+                document.getElementById('successMessage').classList.remove('show');
+                
+                // 洗牌
+                shuffleArray(cards);
+                
+                // 创建泡泡元素
+                cards.forEach((card, index) => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    bubble.textContent = card.content;
+                    bubble.dataset.index = index;
+                    bubble.dataset.type = card.type;
+                    bubble.dataset.match = card.match;
+                    bubble.dataset.selected = 'false';
+                    
+                    // 设置不同颜色
+                    const colors = [
+                        '#3498db', '#e74c3c', '#2ecc71', '#f39c12', 
+                        '#9b59b6', '#1abc9c', '#d35400', '#34495e',
+                        '#16a085', '#c0392b', '#8e44ad', '#27ae60',
+                        '#d35400', '#f1c40f', '#e67e22', '#7f8c8d'
+                    ];
+                    bubble.style.backgroundColor = colors[index % colors.length];
+                    
+                    bubble.addEventListener('click', handleBubbleClick);
+                    gameBoard.appendChild(bubble);
+                });
+            }
+            
+            let firstSelected = null;
+            let canClick = true;
+            let matchedPairs = 0;
+            
+            function handleBubbleClick(event) {
+                if (!canClick) return;
+                
+                const bubble = event.currentTarget;
+                if (bubble.dataset.selected === 'true' || bubble.classList.contains('hidden')) return;
+                
+                bubble.dataset.selected = 'true';
+                bubble.style.transform = 'scale(0.95)';
+                
+                if (!firstSelected) {
+                    firstSelected = bubble;
+                } else {
+                    canClick = false;
+                    
+                    // 检查是否匹配
+                    if (firstSelected.dataset.match === bubble.textContent && 
+                        bubble.dataset.match === firstSelected.textContent) {
+                        // 匹配成功
+                        successSound.currentTime = 0;
+                        successSound.play();
+                        
+                        setTimeout(() => {
+                            firstSelected.classList.add('hidden');
+                            bubble.classList.add('hidden');
+                            firstSelected = null;
+                            canClick = true;
+                            matchedPairs++;
+                            
+                            // 检查游戏是否结束
+                            if (matchedPairs === pairs.length) {
+                                setTimeout(() => {
+                                    document.getElementById('successMessage').classList.add('show');
+                                }, 500);
+                            }
+                        }, 500);
+                    } else {
+                        // 不匹配
+                        setTimeout(() => {
+                            firstSelected.dataset.selected = 'false';
+                            bubble.dataset.selected = 'false';
+                            firstSelected.style.transform = 'scale(1)';
+                            bubble.style.transform = 'scale(1)';
+                            firstSelected = null;
+                            canClick = true;
+                        }, 1000);
+                    }
+                }
+            }
+            
+            // 重新开始按钮
+            document.getElementById('restartBtn').addEventListener('click', function() {
+                matchedPairs = 0;
+                initGame();
+            });
+            
+            // 初始化游戏
+            initGame();
+        });
+    </script>
+</body>
+</html>
